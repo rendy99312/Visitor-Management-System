@@ -11,6 +11,7 @@ class Visitor extends Model
         'perusahaan',
         'no_hp',
         'visitor_id',
+        'id_kartu',
         'email',
         'tujuan',
         'lantai',
@@ -20,9 +21,9 @@ class Visitor extends Model
         'waktu_keluar',
         'status'
     ];
-
-
+    
     protected $casts = [
+        'id_kartu' => 'integer',
         'waktu_masuk' => 'datetime',
         'waktu_keluar' => 'datetime'
     ];

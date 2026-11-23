@@ -1,3 +1,4 @@
+
 /*
 ==========================================
 REPORT PAGE
@@ -5,72 +6,59 @@ REPORT PAGE
 */
 
 const searchInput = document.getElementById("searchReport");
-
 const reportTable = document.getElementById("reportTable");
-
 const exportPdf = document.getElementById("exportPdf");
+
 /*
 ==========================================
 SEARCH REPORT
 ==========================================
 */
 
-if(searchInput){
+if (searchInput && reportTable) {
 
-    searchInput.addEventListener("keyup",function(){
+    searchInput.addEventListener("keyup", function () {
 
-        const keyword = this.value.toLowerCase();
+        const keyword = this.value.toLowerCase().trim();
 
         const rows = reportTable.querySelectorAll("tr");
 
-        rows.forEach(function(row){
+        rows.forEach(function (row) {
 
             const text = row.innerText.toLowerCase();
 
-            if(text.includes(keyword)){
-
-                row.style.display = "";
-
-            }
-
-            else{
-
-                row.style.display = "none";
-
-            }
+            row.style.display = text.includes(keyword) ? "" : "none";
 
         });
 
     });
 
 }
+
 /*
 ==========================================
-EXPORT PDF (Print)
+EXPORT PDF (PRINT)
 ==========================================
 */
 
-if(exportPdf){
+if (exportPdf) {
 
-    exportPdf.addEventListener("click",function(){
+    exportPdf.addEventListener("click", function () {
 
         window.print();
 
     });
 
 }
+
 /*
 ==========================================
 PAGE READY
 ==========================================
 */
 
-window.addEventListener("load",function(){
+window.addEventListener("load", function () {
 
-    console.log(
-
-        "Report Page Loaded"
-
-    );
+    console.log("Report Page Loaded");
 
 });

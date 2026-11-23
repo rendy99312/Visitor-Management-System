@@ -1,3 +1,4 @@
+
 /*
 ==========================================
 DC Visitor
@@ -14,6 +15,7 @@ const visitorCompany = document.getElementById("visitorCompany");
 const visitorPurpose = document.getElementById("visitorPurpose");
 const visitorLantai = document.getElementById("visitorLantai");
 const visitorRak = document.getElementById("visitorRak");
+const visitorIdKartu = document.getElementById("visitorIdKartu");
 
 const previousDataAlert = document.getElementById("previousDataAlert");
 const previousPhotoHint = document.getElementById("previousPhotoHint");
@@ -39,39 +41,35 @@ const confirmModal = new bootstrap.Modal(
     document.getElementById("confirmModal")
 );
 
+const lookupUrl = form.dataset.lookupUrl;
+
+const CARD_PATTERN = /^[1-9][0-9]*$/;
+
 let photoUploaded = false;
 let mediaStream = null;
 
 // ==============================
-// FOTO SELFIE (Kamera Live)
+// FOTO SELFIE (KAMERA LIVE)
 // ==============================
 
 function showError(message) {
-
     cameraError.textContent = message;
     cameraError.classList.remove("d-none");
-
 }
 
 function stopCamera() {
-
     if (mediaStream) {
-
         mediaStream.getTracks().forEach(track => track.stop());
         mediaStream = null;
-
     }
 
     cameraStream.classList.add("d-none");
-
 }
 
 async function startCamera() {
-
     cameraError.classList.add("d-none");
 
     try {
-
         mediaStream = await navigator.mediaDevices.getUserMedia({
             video: { facingMode: "user" },
             audio: false
@@ -88,21 +86,17 @@ async function startCamera() {
         retakeButton.classList.add("d-none");
 
     } catch (error) {
- 
         console.error(error);
 
         showError(
             "Tidak bisa mengakses kamera. Pastikan izin kamera diaktifkan di browser."
         );
-
     }
-
 }
 
 cameraButton.addEventListener("click", startCamera);
 
 captureButton.addEventListener("click", function () {
-
     const videoWidth = cameraStream.videoWidth;
     const videoHeight = cameraStream.videoHeight;
 
@@ -116,7 +110,6 @@ captureButton.addEventListener("click", function () {
 
     const ctx = cameraCanvas.getContext("2d");
 
-    // Mirror seperti kamera selfie HP
     ctx.save();
 
     ctx.translate(videoWidth, 0);
@@ -133,7 +126,6 @@ captureButton.addEventListener("click", function () {
     ctx.restore();
 
     cameraCanvas.toBlob(function (blob) {
-
         if (!blob) {
             showError("Gagal mengambil foto.");
             return;
@@ -165,20 +157,17 @@ captureButton.addEventListener("click", function () {
         photoUploaded = true;
 
     }, "image/jpeg", 0.9);
-
 });
 
 retakeButton.addEventListener("click", function () {
-
     previewImage.classList.add("d-none");
     photoUploaded = false;
     selfieInput.value = "";
 
     startCamera();
-
 });
-selfieInput.addEventListener("change", function () {
 
+selfieInput.addEventListener("change", function () {
     const file = this.files[0];
 
     if (!file) return;
@@ -186,7 +175,6 @@ selfieInput.addEventListener("change", function () {
     const reader = new FileReader();
 
     reader.onload = function (e) {
-
         previewImage.src = e.target.result;
 
         previewImage.classList.remove("d-none");
@@ -198,38 +186,42 @@ selfieInput.addEventListener("change", function () {
         retakeButton.classList.remove("d-none");
 
         photoUploaded = true;
-
     };
 
     reader.readAsDataURL(file);
-
 });
 
 // ==============================
 // NOMOR HP
 // ==============================
 
-const lookupUrl = form.dataset.lookupUrl;
-
 visitorPhone.addEventListener("input", function () {
+    this.value = this.value.replace(/[^0-9]/g, "").slice(0, 15);
 
-    this.value = this.value.replace(/[^0-9]/g, "");
-
-    this.classList.toggle("is-valid", this.value.length >= 10);
-
+    this.classList.toggle(
+        "is-valid",
+        this.value.length >= 10 && this.value.length <= 15
+    );
 });
 
 visitorPhone.addEventListener("blur", async function () {
-
     if (!lookupUrl || this.value.length < 10) {
         return;
     }
 
     try {
-
         const response = await fetch(
-            lookupUrl + "?no_hp=" + encodeURIComponent(this.value)
+            lookupUrl + "?no_hp=" + encodeURIComponent(this.value),
+            {
+                headers: {
+                    "Accept": "application/json"
+                }
+            }
         );
+
+        if (!response.ok) {
+            return;
+        }
 
         const result = await response.json();
 
@@ -241,17 +233,17 @@ visitorPhone.addEventListener("blur", async function () {
 
         if (data.nama) {
             visitorName.value = data.nama;
-            visitorName.classList.toggle("is-valid", true);
+            visitorName.classList.add("is-valid");
         }
 
         if (data.email) {
             visitorEmail.value = data.email;
-            visitorEmail.classList.toggle("is-valid", true);
+            visitorEmail.classList.add("is-valid");
         }
 
         if (data.perusahaan) {
             visitorCompany.value = data.perusahaan;
-            visitorCompany.classList.toggle("is-valid", true);
+            visitorCompany.classList.add("is-valid");
         }
 
         if (data.lantai) {
@@ -260,7 +252,7 @@ visitorPhone.addEventListener("blur", async function () {
 
         if (data.nomor_rak) {
             visitorRak.value = data.nomor_rak;
-            visitorRak.classList.toggle("is-valid", true);
+            visitorRak.classList.add("is-valid");
         }
 
         previousDataAlert.classList.remove("d-none");
@@ -273,23 +265,38 @@ visitorPhone.addEventListener("blur", async function () {
         }
 
     } catch (error) {
-
         console.error(error);
-
     }
-
 });
 
 // ==============================
-// NOMOR RAK (angka saja)
+// NOMOR RAK
 // ==============================
 
 visitorRak.addEventListener("input", function () {
-
     this.value = this.value.replace(/[^0-9]/g, "");
 
-    this.classList.toggle("is-valid", this.value.trim() !== "");
+    this.classList.toggle(
+        "is-valid",
+        this.value.trim() !== ""
+    );
+});
 
+// ==============================
+// ID KARTU VISITOR
+// ==============================
+
+visitorIdKartu.addEventListener("input", function () {
+    this.value = this.value.replace(/[^0-9]/g, "");
+
+    this.classList.toggle(
+        "is-valid",
+        CARD_PATTERN.test(this.value)
+    );
+
+    if (CARD_PATTERN.test(this.value)) {
+        this.setCustomValidity("");
+    }
 });
 
 // ==============================
@@ -297,74 +304,65 @@ visitorRak.addEventListener("input", function () {
 // ==============================
 
 function validateForm() {
-
     if (visitorName.value.trim().length < 3) {
-
         alert("Nama minimal 3 karakter.");
         visitorName.focus();
         return false;
-
     }
 
-    if (visitorPhone.value.length < 10) {
-
+    if (
+        visitorPhone.value.length < 10 ||
+        visitorPhone.value.length > 15
+    ) {
         alert("Nomor HP tidak valid.");
         visitorPhone.focus();
         return false;
-
     }
 
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
     if (!emailRegex.test(visitorEmail.value)) {
-
         alert("Email tidak valid.");
         visitorEmail.focus();
         return false;
-
     }
 
     if (visitorCompany.value.trim() === "") {
-
         alert("Perusahaan wajib diisi.");
         visitorCompany.focus();
         return false;
-
     }
 
     if (visitorPurpose.value === "") {
-
         alert("Pilih tujuan kunjungan.");
         visitorPurpose.focus();
         return false;
-
     }
 
     if (visitorLantai.value === "") {
-
         alert("Pilih lantai terlebih dahulu.");
         visitorLantai.focus();
         return false;
-
     }
 
     if (visitorRak.value.trim().length < 1) {
-
         alert("Nomor rak wajib diisi (angka).");
         visitorRak.focus();
         return false;
+    }
 
+    if (!CARD_PATTERN.test(visitorIdKartu.value.trim())) {
+        alert("ID Kartu Visitor wajib diisi dengan angka bulat positif.");
+        visitorIdKartu.focus();
+        return false;
     }
 
     if (!photoUploaded) {
-
         alert("Silakan ambil foto selfie.");
         return false;
-
     }
 
     return true;
-
 }
 
 // ==============================
@@ -372,17 +370,13 @@ function validateForm() {
 // ==============================
 
 form.addEventListener("submit", function (e) {
-
     e.preventDefault();
 
     if (!validateForm()) {
-
         return;
-
     }
 
     confirmModal.show();
-
 });
 
 // ==============================
@@ -390,7 +384,6 @@ form.addEventListener("submit", function (e) {
 // ==============================
 
 confirmSubmit.addEventListener("click", function () {
-
     confirmModal.hide();
 
     submitButton.disabled = true;
@@ -401,7 +394,6 @@ confirmSubmit.addEventListener("click", function () {
     `;
 
     form.submit();
-
 });
 
 // ==============================
@@ -409,7 +401,6 @@ confirmSubmit.addEventListener("click", function () {
 // ==============================
 
 resetButton.addEventListener("click", function () {
-
     stopCamera();
 
     previewImage.src = "";
@@ -430,6 +421,18 @@ resetButton.addEventListener("click", function () {
     previousDataAlert.classList.add("d-none");
     previousPhotoHint.classList.add("d-none");
 
+    [
+        visitorName,
+        visitorPhone,
+        visitorEmail,
+        visitorCompany,
+        visitorPurpose,
+        visitorLantai,
+        visitorRak,
+        visitorIdKartu
+    ].forEach(function (field) {
+        field.classList.remove("is-valid", "is-invalid");
+    });
 });
 
 // ==============================
@@ -437,21 +440,24 @@ resetButton.addEventListener("click", function () {
 // ==============================
 
 visitorName.addEventListener("input", function () {
-
-    this.classList.toggle("is-valid", this.value.length >= 3);
-
+    this.classList.toggle(
+        "is-valid",
+        this.value.trim().length >= 3
+    );
 });
 
 visitorEmail.addEventListener("input", function () {
-
     const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-    this.classList.toggle("is-valid", regex.test(this.value));
-
+    this.classList.toggle(
+        "is-valid",
+        regex.test(this.value)
+    );
 });
 
 visitorCompany.addEventListener("input", function () {
-
-    this.classList.toggle("is-valid", this.value.trim() !== "");
-
+    this.classList.toggle(
+        "is-valid",
+        this.value.trim() !== ""
+    );
 });

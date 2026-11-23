@@ -1,23 +1,19 @@
+
 /*
 ==========================================
 Sengked.com
-Visitor Login (2 langkah) - Javascript
+Visitor Login (2 langkah)
 
-Langkah 1 : Nomor Telepon + ID Visitor (5 digit)
-Langkah 2 : Tujuan Kunjungan, Lantai, Nomor Rak, Selfie
+Langkah 1:
+Nomor Telepon
 
-Catatan integrasi backend:
-- Verifikasi langkah 1 memanggil URL pada atribut
-  data-lookup-url (route checkin.lookup) dengan query
-  ?no_hp=...&visitor_id=...
-- Respons yang dipahami frontend:
-    { success: true,  data: { nama, perusahaan, foto } }
-    { success: false, reason: "phone_not_found" }
-    { success: false, reason: "visitor_id_not_found" }
-    { success: false, reason: "mismatch" }
-  (tanpa "reason" dianggap nomor telepon tidak ditemukan)
-- Pencocokan Nomor Telepon <-> ID Visitor HARUS dilakukan
-  di backend. Frontend hanya memvalidasi format (5 digit angka).
+Langkah 2:
+Tujuan Kunjungan, Lantai, Nomor Rak,
+ID Kartu Visitor, dan Selfie
+
+Integrasi backend:
+- Lookup menggunakan Nomor Telepon saja.
+- ID Kartu Visitor dikirim saat submit check-in.
 ==========================================
 */
 
@@ -30,8 +26,7 @@ const stepIndicator2 = document.getElementById("loginStepIndicator2");
 const stepLine = document.getElementById("loginStepLine");
 
 const loginPhone = document.getElementById("loginPhone");
-const loginVisitorId = document.getElementById("loginVisitorId");
-const loginVisitorIdCount = document.getElementById("loginVisitorIdCount");
+const loginIdKartu = document.getElementById("loginIdKartu");
 const loginNextButton = document.getElementById("loginNextButton");
 const loginBackButton = document.getElementById("loginBackButton");
 
@@ -73,16 +68,14 @@ const loginConfirmModal = new bootstrap.Modal(
 const lookupUrl = loginForm.dataset.lookupUrl;
 
 const PHONE_PATTERN = /^[0-9]{10,15}$/;
-const VISITOR_ID_PATTERN = /^[0-9]{5}$/;
+const CARD_PATTERN = /^[1-9][0-9]*$/;
 
 const MESSAGES = {
     phoneInvalid: "Nomor telepon tidak valid. Masukkan 10 sampai 15 digit angka.",
-    idInvalid: "ID Visitor harus terdiri dari tepat 5 digit angka.",
-    idNotFound: "ID Visitor tidak ditemukan. Harap periksa kembali ID Visitor Anda.",
-    phoneNotFound: "Nomor telepon tidak ditemukan. Harap periksa kembali nomor telepon Anda.",
-    mismatch: "Nomor telepon dan ID Visitor tidak cocok. Harap periksa kembali data Anda.",
+    cardInvalid: "ID Kartu Visitor wajib diisi dengan angka bulat positif.",
+    visitorNotFound: "Nomor telepon tidak ditemukan. Pastikan nomor yang digunakan sudah terdaftar.",
     network: "Tidak dapat terhubung ke server. Periksa koneksi Anda lalu coba lagi.",
-    needVerify: "Silakan verifikasi Nomor Telepon dan ID Visitor terlebih dahulu."
+    needVerify: "Silakan verifikasi nomor telepon terlebih dahulu."
 };
 
 let currentStep = 1;
@@ -96,95 +89,74 @@ const prefersReducedMotion = window.matchMedia(
 ).matches;
 
 // ==============================
-// HELPER UI (alert & status field)
+// HELPER UI
 // ==============================
 
 function restartAnimation(element) {
-
     element.style.animation = "none";
-
-    // paksa reflow supaya animasi masuk diputar ulang
     void element.offsetWidth;
-
     element.style.animation = "";
-
 }
 
 function setAlert(box, textElement, message) {
-
     if (!message) {
-
         box.classList.add("d-none");
         return;
-
     }
 
     textElement.textContent = message;
-
     box.classList.remove("d-none");
 
     restartAnimation(box);
-
 }
 
 function flagField(input) {
-
     input.classList.remove("is-valid");
     input.classList.add("is-invalid", "field-flag");
-
 }
 
 function markInvalid(input) {
-
     input.classList.remove("is-valid", "field-flag");
     input.classList.add("is-invalid");
-
 }
 
 function clearField(input) {
-
     input.classList.remove("is-invalid", "field-flag");
-
 }
 
 function scrollToTop() {
-
     window.scrollTo({
         top: 0,
         behavior: prefersReducedMotion ? "auto" : "smooth"
     });
-
 }
 
 // ==============================
-// FOTO SELFIE (Kamera Live)
+// FOTO SELFIE
 // ==============================
 
 function showLoginCameraError(message) {
-
     loginCameraError.textContent = message;
     loginCameraError.classList.remove("d-none");
-
 }
 
 function stopLoginCamera() {
-
     if (loginMediaStream) {
-
         loginMediaStream.getTracks().forEach(track => track.stop());
         loginMediaStream = null;
-
     }
 
+    loginCameraStream.srcObject = null;
     loginCameraStream.classList.add("d-none");
-
 }
 
 async function startLoginCamera() {
-
     loginCameraError.classList.add("d-none");
 
     try {
+        if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+            throw new Error("Kamera tidak didukung browser.");
+        }
 
         loginMediaStream = await navigator.mediaDevices.getUserMedia({
             video: { facingMode: "user" },
@@ -202,21 +174,17 @@ async function startLoginCamera() {
         loginRetakeButton.classList.add("d-none");
 
     } catch (error) {
-
         console.error(error);
 
         showLoginCameraError(
             "Tidak bisa mengakses kamera. Pastikan izin kamera diaktifkan di browser."
         );
-
     }
-
 }
 
 loginCameraButton.addEventListener("click", startLoginCamera);
 
 loginCaptureButton.addEventListener("click", function () {
-
     const videoWidth = loginCameraStream.videoWidth;
     const videoHeight = loginCameraStream.videoHeight;
 
@@ -230,9 +198,7 @@ loginCaptureButton.addEventListener("click", function () {
 
     const ctx = loginCameraCanvas.getContext("2d");
 
-    // Mirror seperti kamera selfie HP
     ctx.save();
-
     ctx.translate(videoWidth, 0);
     ctx.scale(-1, 1);
 
@@ -247,7 +213,6 @@ loginCaptureButton.addEventListener("click", function () {
     ctx.restore();
 
     loginCameraCanvas.toBlob(function (blob) {
-
         if (!blob) {
             showLoginCameraError("Gagal mengambil foto.");
             return;
@@ -256,9 +221,7 @@ loginCaptureButton.addEventListener("click", function () {
         const file = new File(
             [blob],
             "selfie-login-" + Date.now() + ".jpg",
-            {
-                type: "image/jpeg"
-            }
+            { type: "image/jpeg" }
         );
 
         const dataTransfer = new DataTransfer();
@@ -279,21 +242,17 @@ loginCaptureButton.addEventListener("click", function () {
         loginPhotoUploaded = true;
 
     }, "image/jpeg", 0.9);
-
 });
 
 loginRetakeButton.addEventListener("click", function () {
-
     loginPreviewImage.classList.add("d-none");
     loginPhotoUploaded = false;
     loginSelfieInput.value = "";
 
     startLoginCamera();
-
 });
 
 loginSelfieInput.addEventListener("change", function () {
-
     const file = this.files[0];
 
     if (!file) return;
@@ -301,7 +260,6 @@ loginSelfieInput.addEventListener("change", function () {
     const reader = new FileReader();
 
     reader.onload = function (e) {
-
         loginPreviewImage.src = e.target.result;
 
         loginPreviewImage.classList.remove("d-none");
@@ -313,38 +271,31 @@ loginSelfieInput.addEventListener("change", function () {
         loginRetakeButton.classList.remove("d-none");
 
         loginPhotoUploaded = true;
-
     };
 
     reader.readAsDataURL(file);
-
 });
 
 // ==============================
-// LANGKAH (stepper)
+// LANGKAH / STEPPER
 // ==============================
 
 function resetCameraUI() {
-
     stopLoginCamera();
 
     loginCameraError.classList.add("d-none");
 
     if (!loginPhotoUploaded) {
-
         loginPreviewImage.classList.add("d-none");
         loginPhotoPlaceholder.classList.remove("d-none");
 
         loginCameraButton.classList.remove("d-none");
         loginCaptureButton.classList.add("d-none");
         loginRetakeButton.classList.add("d-none");
-
     }
-
 }
 
 function showStep(step, options) {
-
     options = options || {};
 
     const goingBack = !!options.back;
@@ -368,132 +319,100 @@ function showStep(step, options) {
     stepLine.classList.toggle("is-complete", step === 2);
 
     if (step === 1) {
-
         stepIndicator1.setAttribute("aria-current", "step");
         stepIndicator2.removeAttribute("aria-current");
 
         resetCameraUI();
 
     } else {
-
         stepIndicator2.setAttribute("aria-current", "step");
         stepIndicator1.removeAttribute("aria-current");
-
     }
 
     if (!options.silent) {
-
         scrollToTop();
 
-        (step === 1 ? loginPhone : loginPurpose).focus({ preventScroll: true });
-
+        (step === 1 ? loginPhone : loginPurpose).focus({
+            preventScroll: true
+        });
     }
-
 }
 
 // ==============================
-// INPUT : NOMOR TELEPON & ID VISITOR
+// INPUT IDENTITAS
 // ==============================
-
-function updateVisitorIdCount() {
-
-    const length = loginVisitorId.value.length;
-
-    loginVisitorIdCount.textContent = length + "/5";
-
-    loginVisitorIdCount.classList.toggle("is-complete", length === 5);
-
-    loginVisitorId.classList.toggle("is-valid", length === 5);
-
-}
 
 function invalidateVerification() {
-
     identityVerified = false;
+    verifiedKey = "";
 
     setAlert(loginVerifyError, loginVerifyErrorText, "");
-
 }
 
 loginPhone.addEventListener("input", function () {
+    this.value = this.value.replace(/[^0-9]/g, "").slice(0, 15);
 
-    // angka saja
+    clearField(this);
+
+    this.classList.toggle(
+        "is-valid",
+        PHONE_PATTERN.test(this.value)
+    );
+
+    invalidateVerification();
+});
+
+// ID kartu hanya divalidasi pada tahap 2.
+loginIdKartu.addEventListener("input", function () {
     this.value = this.value.replace(/[^0-9]/g, "");
 
     clearField(this);
 
-    this.classList.toggle("is-valid", PHONE_PATTERN.test(this.value));
+    this.classList.toggle(
+        "is-valid",
+        CARD_PATTERN.test(this.value)
+    );
 
-    invalidateVerification();
-
+    setAlert(loginFormError, loginFormErrorText, "");
 });
 
-loginVisitorId.addEventListener("input", function () {
-
-    // angka saja, maksimal 5 digit (termasuk saat paste)
-    this.value = this.value.replace(/[^0-9]/g, "").slice(0, 5);
-
-    clearField(this);
-
-    updateVisitorIdCount();
-
-    invalidateVerification();
-
+loginPhone.addEventListener("keydown", function (e) {
+    if (e.key === "Enter") {
+        e.preventDefault();
+        goToStepTwo();
+    }
 });
-
-[loginPhone, loginVisitorId].forEach(function (input) {
-
-    input.addEventListener("keydown", function (e) {
-
-        // Enter di langkah 1 = tombol "Lanjutkan"
-        if (e.key === "Enter") {
-
-            e.preventDefault();
-
-            goToStepTwo();
-
-        }
-
-    });
-
-});
-
-updateVisitorIdCount();
 
 // ==============================
-// NOMOR RAK (angka saja)
+// NOMOR RAK DAN FORM
 // ==============================
 
 loginRak.addEventListener("input", function () {
-
     this.value = this.value.replace(/[^0-9]/g, "");
 
     clearField(this);
 
-    this.classList.toggle("is-valid", this.value.trim() !== "");
+    this.classList.toggle(
+        "is-valid",
+        this.value.trim() !== ""
+    );
 
     setAlert(loginFormError, loginFormErrorText, "");
-
 });
 
 [loginPurpose, loginLantai].forEach(function (select) {
-
     select.addEventListener("change", function () {
-
         clearField(this);
 
         setAlert(loginFormError, loginFormErrorText, "");
-
     });
-
 });
 
 // ==============================
-// LANGKAH 1 : VERIFIKASI
+// LANGKAH 1: VERIFIKASI HP SAJA
 // ==============================
 
 function setNextLoading(isLoading) {
-
     loginNextButton.disabled = isLoading;
 
     loginNextButton.innerHTML = isLoading
@@ -501,128 +420,91 @@ function setNextLoading(isLoading) {
            <span class="btn-label">Memeriksa...</span>`
         : `<span class="btn-label">Lanjutkan</span>
            <i class="bi bi-arrow-right ms-1"></i>`;
-
 }
 
-async function verifyVisitor(phone, visitorId) {
-
-    const query =
-        "?no_hp=" + encodeURIComponent(phone) +
-        "&visitor_id=" + encodeURIComponent(visitorId);
-
-    const response = await fetch(lookupUrl + query, {
-        headers: { "Accept": "application/json" }
+async function verifyVisitor(phone) {
+    const query = new URLSearchParams({
+        no_hp: phone
     });
 
+    const response = await fetch(
+        lookupUrl + "?" + query.toString(),
+        {
+            headers: {
+                "Accept": "application/json"
+            }
+        }
+    );
+
     if (!response.ok) {
-
         throw new Error("HTTP " + response.status);
-
     }
 
     return response.json();
-
 }
 
 function interpretVerification(result) {
-
     if (result && result.success === true) {
-
-        return { ok: true, data: result.data || {} };
-
+        return {
+            ok: true,
+            data: result.data || {}
+        };
     }
 
-    const reason = result && result.reason;
-
-    if (reason === "visitor_id_not_found") {
-
-        return { ok: false, fields: [loginVisitorId], message: MESSAGES.idNotFound };
-
-    }
-
-    if (reason === "mismatch") {
-
-        return { ok: false, fields: [loginPhone, loginVisitorId], message: MESSAGES.mismatch };
-
-    }
-
-    return { ok: false, fields: [loginPhone], message: MESSAGES.phoneNotFound };
-
+    return {
+        ok: false,
+        fields: [loginPhone],
+        message: MESSAGES.visitorNotFound
+    };
 }
 
 async function goToStepTwo() {
-
     if (loginNextButton.disabled) {
-
         return;
-
     }
 
     setAlert(loginVerifyError, loginVerifyErrorText, "");
 
     const phone = loginPhone.value.trim();
-    const visitorId = loginVisitorId.value.trim();
-
-    // --- validasi format (frontend) ---
-
-    let formatValid = true;
 
     if (!PHONE_PATTERN.test(phone)) {
-
         markInvalid(loginPhone);
-        formatValid = false;
+        loginPhone.focus();
 
-    }
-
-    if (!VISITOR_ID_PATTERN.test(visitorId)) {
-
-        markInvalid(loginVisitorId);
-        formatValid = false;
-
-    }
-
-    if (!formatValid) {
-
-        (loginPhone.classList.contains("is-invalid")
-            ? loginPhone
-            : loginVisitorId).focus();
+        setAlert(
+            loginVerifyError,
+            loginVerifyErrorText,
+            MESSAGES.phoneInvalid
+        );
 
         return;
-
     }
 
-    // --- sudah pernah diverifikasi dengan data yang sama ---
-
-    const key = phone + ":" + visitorId;
+    const key = phone;
 
     if (identityVerified && key === verifiedKey) {
-
         showStep(2);
-
         return;
-
     }
-
-    // --- verifikasi ke backend ---
 
     setNextLoading(true);
 
     try {
-
-        const result = await verifyVisitor(phone, visitorId);
-
+        const result = await verifyVisitor(phone);
         const outcome = interpretVerification(result);
 
         if (!outcome.ok) {
-
             outcome.fields.forEach(flagField);
 
-            setAlert(loginVerifyError, loginVerifyErrorText, outcome.message);
+            setAlert(
+                loginVerifyError,
+                loginVerifyErrorText,
+                outcome.message
+            );
 
             outcome.fields[0].focus();
 
             return;
-
         }
 
         const data = outcome.data;
@@ -631,14 +513,10 @@ async function goToStepTwo() {
         foundCompany.textContent = data.perusahaan || "-";
 
         if (data.foto) {
-
             loginPreviousPhotoImg.src = data.foto;
             loginPreviousPhotoHint.classList.remove("d-none");
-
         } else {
-
             loginPreviousPhotoHint.classList.add("d-none");
-
         }
 
         identityVerified = true;
@@ -647,41 +525,42 @@ async function goToStepTwo() {
         showStep(2);
 
     } catch (error) {
-
         console.error(error);
 
-        setAlert(loginVerifyError, loginVerifyErrorText, MESSAGES.network);
+        setAlert(
+            loginVerifyError,
+            loginVerifyErrorText,
+            MESSAGES.network
+        );
 
     } finally {
-
         setNextLoading(false);
-
     }
-
 }
 
 loginNextButton.addEventListener("click", goToStepTwo);
 
 loginBackButton.addEventListener("click", function () {
-
     showStep(1, { back: true });
-
 });
 
 // ==============================
-// LANGKAH 2 : VALIDASI
+// LANGKAH 2: VALIDASI
 // ==============================
 
 function failStepTwo(message, field) {
-
-    setAlert(loginFormError, loginFormErrorText, message);
+    setAlert(
+        loginFormError,
+        loginFormErrorText,
+        message
+    );
 
     if (field) {
-
         flagField(field);
 
-        field.focus({ preventScroll: true });
-
+        field.focus({
+            preventScroll: true
+        });
     }
 
     loginFormError.scrollIntoView({
@@ -690,49 +569,59 @@ function failStepTwo(message, field) {
     });
 
     return false;
-
 }
 
 function validateStepTwo() {
-
     setAlert(loginFormError, loginFormErrorText, "");
 
-    if (!identityVerified) {
-
+    if (!identityVerified || verifiedKey !== loginPhone.value.trim()) {
         showStep(1, { back: true });
 
-        setAlert(loginVerifyError, loginVerifyErrorText, MESSAGES.needVerify);
+        setAlert(
+            loginVerifyError,
+            loginVerifyErrorText,
+            MESSAGES.needVerify
+        );
 
         return false;
-
     }
 
     if (loginPurpose.value === "") {
-
-        return failStepTwo("Pilih tujuan kunjungan.", loginPurpose);
-
+        return failStepTwo(
+            "Pilih tujuan kunjungan.",
+            loginPurpose
+        );
     }
 
     if (loginLantai.value === "") {
-
-        return failStepTwo("Pilih lantai terlebih dahulu.", loginLantai);
-
+        return failStepTwo(
+            "Pilih lantai terlebih dahulu.",
+            loginLantai
+        );
     }
 
-    if (loginRak.value.trim().length < 1) {
-
-        return failStepTwo("Nomor rak wajib diisi (angka).", loginRak);
-
+    if (loginRak.value.trim() === "") {
+        return failStepTwo(
+            "Nomor rak wajib diisi.",
+            loginRak
+        );
     }
 
-    if (!loginPhotoUploaded) {
+    if (!CARD_PATTERN.test(loginIdKartu.value.trim())) {
+        return failStepTwo(
+            MESSAGES.cardInvalid,
+            loginIdKartu
+        );
+    }
 
-        return failStepTwo("Silakan ambil foto selfie.", null);
-
+    if (!loginPhotoUploaded || !loginSelfieInput.files.length) {
+        return failStepTwo(
+            "Silakan ambil foto selfie.",
+            null
+        );
     }
 
     return true;
-
 }
 
 // ==============================
@@ -740,30 +629,21 @@ function validateStepTwo() {
 // ==============================
 
 loginForm.addEventListener("submit", function (e) {
-
     e.preventDefault();
 
-    // Enter / submit saat masih di langkah 1 = lanjut ke langkah 2
     if (currentStep === 1) {
-
         goToStepTwo();
-
         return;
-
     }
 
     if (!validateStepTwo()) {
-
         return;
-
     }
 
     loginConfirmModal.show();
-
 });
 
 loginConfirmSubmit.addEventListener("click", function () {
-
     loginConfirmModal.hide();
 
     loginSubmitButton.disabled = true;
@@ -774,7 +654,6 @@ loginConfirmSubmit.addEventListener("click", function () {
     `;
 
     loginForm.submit();
-
 });
 
 // ==============================
@@ -782,11 +661,9 @@ loginConfirmSubmit.addEventListener("click", function () {
 // ==============================
 
 loginForm.addEventListener("reset", function () {
-
     stopLoginCamera();
 
     loginPreviewImage.src = "";
-
     loginPreviewImage.classList.add("d-none");
 
     loginPhotoPlaceholder.classList.remove("d-none");
@@ -805,20 +682,22 @@ loginForm.addEventListener("reset", function () {
     identityVerified = false;
     verifiedKey = "";
 
-    [loginPhone, loginVisitorId, loginPurpose, loginLantai, loginRak].forEach(function (field) {
-
+    [
+        loginPhone,
+        loginIdKartu,
+        loginPurpose,
+        loginLantai,
+        loginRak
+    ].forEach(function (field) {
         clearField(field);
-
         field.classList.remove("is-valid");
-
     });
 
     setAlert(loginVerifyError, loginVerifyErrorText, "");
     setAlert(loginFormError, loginFormErrorText, "");
 
-    // nilai input baru benar-benar kosong setelah reset bawaan browser selesai
-    setTimeout(updateVisitorIdCount, 0);
-
-    showStep(1, { back: true, silent: true });
-
+    showStep(1, {
+        back: true,
+        silent: true
+    });
 });

@@ -1,3 +1,4 @@
+
 /*
 ==========================================
 Visitor Javascript
@@ -5,15 +6,10 @@ Visitor Javascript
 */
 
 const searchInput = document.getElementById("searchVisitor");
-
 const statusFilter = document.getElementById("filterStatus");
-
 const dateFilter = document.getElementById("filterDate");
-
 const searchButton = document.getElementById("searchButton");
-
 const tableBody = document.getElementById("visitorTable");
-
 const visitorCountText = document.getElementById("visitorCountText");
 
 const pollUrl = tableBody.dataset.pollUrl;
@@ -28,7 +24,7 @@ let currentVisitors = [];
 
 /*
 ==========================================
-Render Table Rows
+Render Status Badge
 ==========================================
 */
 
@@ -41,6 +37,12 @@ function statusBadge(status) {
     return '<span class="badge bg-secondary">Sudah Check Out</span>';
 
 }
+
+/*
+==========================================
+Render Table Rows
+==========================================
+*/
 
 function renderRows(visitors) {
 
@@ -100,22 +102,49 @@ function renderRows(visitors) {
         return `
             <tr>
                 <td>${index + 1}</td>
-                <td>${visitor.nama}</td>
-                <td><span class="fw-semibold" style="font-family:ui-monospace,Menlo,Consolas,monospace;letter-spacing:.08em;">${visitor.visitor_id || '-'}</span></td>
-                <td>${visitor.email}</td>
-                <td>${visitor.no_hp}</td>
-                <td>${visitor.perusahaan}</td>
-                <td>${visitor.tujuan}</td>
-                <td>${visitor.lantai}</td>
-                <td>${visitor.nomor_rak}</td>
-                <td>${visitor.check_in}</td>
-                <td>${statusBadge(visitor.status)} ${blacklistBadge}</td>
+
+                <td>${visitor.nama ?? '-'}</td>
+
+                <td>
+                    <span
+                        class="fw-semibold"
+                        style="font-family:ui-monospace,Menlo,Consolas,monospace;letter-spacing:.08em;">
+                        ${visitor.id_kartu ?? '-'}
+                    </span>
+                </td>
+
+                <td>${visitor.email ?? '-'}</td>
+
+                <td>${visitor.no_hp ?? '-'}</td>
+
+                <td>${visitor.perusahaan ?? '-'}</td>
+
+                <td>${visitor.tujuan ?? '-'}</td>
+
+                <td>${visitor.lantai ?? '-'}</td>
+
+                <td>${visitor.nomor_rak ?? '-'}</td>
+
+                <td>${visitor.check_in ?? '-'}</td>
+
+                <td>
+                    ${statusBadge(visitor.status)}
+                    ${blacklistBadge}
+                </td>
+
                 <td>
                     <div class="d-flex justify-content-center align-items-center flex-nowrap gap-2">
-                        <a href="${visitor.detail_url}" class="btn btn-primary btn-sm">
+
+                        <a
+                            href="${visitor.detail_url}"
+                            class="btn btn-primary btn-sm">
+
                             <i class="bi bi-eye-fill"></i>
+
                         </a>
+
                         ${blacklistButton}
+
                     </div>
                 </td>
             </tr>
@@ -124,8 +153,10 @@ function renderRows(visitors) {
     }).join("");
 
     if (visitorCountText) {
+
         visitorCountText.textContent =
             `Menampilkan 1 - ${visitors.length} dari ${visitors.length} data visitor`;
+
     }
 
 }
@@ -138,7 +169,7 @@ Apply Search + Status Filter
 
 function applyFilters() {
 
-    const keyword = searchInput.value.toLowerCase();
+    const keyword = searchInput.value.toLowerCase().trim();
 
     const statusValue = statusFilter.value.toLowerCase();
 
@@ -150,7 +181,7 @@ function applyFilters() {
 
             const haystack = [
                 visitor.nama,
-                visitor.visitor_id,
+                visitor.id_kartu,
                 visitor.email,
                 visitor.no_hp,
                 visitor.perusahaan,
@@ -195,9 +226,28 @@ function applyFilters() {
 
 }
 
-searchInput.addEventListener("keyup", applyFilters);
+/*
+==========================================
+Event Listeners
+==========================================
+*/
 
-statusFilter.addEventListener("change", applyFilters);
+if (searchInput) {
+    searchInput.addEventListener("keyup", applyFilters);
+
+    searchInput.addEventListener("keydown", function (event) {
+
+        if (event.key === "Enter") {
+            event.preventDefault();
+            applyFilters();
+        }
+
+    });
+}
+
+if (statusFilter) {
+    statusFilter.addEventListener("change", applyFilters);
+}
 
 if (dateFilter) {
     dateFilter.addEventListener("change", applyFilters);
@@ -206,13 +256,6 @@ if (dateFilter) {
 if (searchButton) {
     searchButton.addEventListener("click", applyFilters);
 }
-
-searchInput.addEventListener("keydown", function (event) {
-    if (event.key === "Enter") {
-        event.preventDefault();
-        applyFilters();
-    }
-});
 
 /*
 ==========================================
@@ -225,14 +268,17 @@ async function fetchVisitors() {
     try {
 
         const response = await fetch(pollUrl, {
-            headers: { "Accept": "application/json" },
+            headers: {
+                "Accept": "application/json",
+            },
+            cache: "no-store",
         });
 
         if (!response.ok) return;
 
         const result = await response.json();
 
-        currentVisitors = result.visitors;
+        currentVisitors = result.visitors ?? [];
 
         applyFilters();
 

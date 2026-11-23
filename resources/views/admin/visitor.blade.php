@@ -1,102 +1,71 @@
+
 <!DOCTYPE html>
-    <html lang="id">
+<html lang="id">
 
-    <head>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-        <meta charset="UTF-8">
+    <title>Data Visitor | Sengked.com</title>
 
-        <meta name="viewport"
-            content="width=device-width, initial-scale=1.0">
+    <!-- Google Font -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 
-        <title>Data Visitor | Sengked.com</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap"
+        rel="stylesheet">
 
-        <!-- Google Font -->
+    <!-- Bootstrap -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/css/bootstrap.min.css"
+        rel="stylesheet">
 
-        <link rel="preconnect"
-            href="https://fonts.googleapis.com">
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet"
+        href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/font/bootstrap-icons.min.css">
 
-        <link rel="preconnect"
-            href="https://fonts.gstatic.com"
-            crossorigin>
+    <!-- Global CSS -->
+    <link rel="stylesheet" href="{{ asset('assets/css/global.css') }}">
 
-        <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap"
-            rel="stylesheet">
+    <!-- Visitor CSS -->
+    <link rel="stylesheet" href="{{ asset('assets/css/admin/visitor.css') }}">
 
-        <!-- Bootstrap -->
-
-        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/css/bootstrap.min.css"
-            rel="stylesheet">
-
-        <!-- Bootstrap Icons -->
-
-        <link rel="stylesheet"
-            href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/font/bootstrap-icons.min.css">
-
-        <!-- Global CSS -->
-
-        <link rel="stylesheet" href="{{ asset('assets/css/global.css') }}">
-
-        <!-- Visitor CSS -->
-
-        <link rel="stylesheet" href="{{ asset('assets/css/admin/visitor.css') }}">
-
-        @include('partials.head-assets')
-
+    @include('partials.head-assets')
 </head>
 
-    <body>
+<body>
 
-    <div class="dashboard-wrapper">
+<div class="dashboard-wrapper">
 
-        <!-- Sidebar -->
+    <!-- Sidebar -->
+    <aside class="sidebar">
 
-        <aside class="sidebar">
+        <div class="sidebar-logo">
+            @include('partials.brand-logo')
+        </div>
 
-            <div class="sidebar-logo">
-
-                @include('partials.brand-logo')
-
-
-            </div>
-
-                    <ul class="sidebar-menu">
+        <ul class="sidebar-menu">
 
             <li>
-
                 <a href="{{ route('admin.dashboard') }}">
-
                     <i class="bi bi-speedometer2"></i>
-
                     Dashboard
-
                 </a>
-
             </li>
 
             <li>
-
-                <a href="{{ route('admin.visitor') }}"
-                   class="active">
-
+                <a href="{{ route('admin.visitor') }}" class="active">
                     <i class="bi bi-people-fill"></i>
-
                     Data Visitor
-
                 </a>
-
             </li>
 
             <li>
-
                 <a href="{{ route('admin.visitor.active') }}">
-
                     <i class="bi bi-person-check-fill"></i>
-
                     Visitor Aktif
-
                 </a>
-
             </li>
+
             <li>
                 <a href="{{ route('admin.blacklist') }}">
                     <i class="bi bi-slash-circle-fill"></i>
@@ -105,78 +74,47 @@
             </li>
 
             <li>
-
                 <a href="{{ route('admin.laporan') }}">
-
                     <i class="bi bi-file-earmark-bar-graph-fill"></i>
-
                     Laporan
-
                 </a>
-
             </li>
 
             <li>
-
                 <a href="{{ route('admin.profile') }}">
-
                     <i class="bi bi-person-circle"></i>
-
                     Profile
-
                 </a>
-
             </li>
 
             <li>
-
                 <a href="{{ route('admin.setting') }}">
-
                     <i class="bi bi-gear-fill"></i>
-
                     Setting
-
                 </a>
-
             </li>
 
             <li>
-
                 <a href="{{ route('logout') }}">
-
                     <i class="bi bi-box-arrow-left"></i>
-
                     Logout
-
                 </a>
-
             </li>
 
         </ul>
+    </aside>
 
-        </aside>
+    <main class="main-content">
 
-        <main class="main-content">
-          
-
-            <!-- ===================== HEADER ===================== -->
-
+        <!-- HEADER -->
         <div class="topbar">
 
             <div>
-
-                <h3>
-
-                    Data Visitor
-
-                </h3>
+                <h3>Data Visitor</h3>
 
                 <p>
-
                     Kelola seluruh data pengunjung Data Center.
-
                 </p>
-
             </div>
 
             <button class="theme-toggle" type="button" title="Ganti tema">
@@ -185,88 +123,367 @@
 
         </div>
 
-    @if(session('error'))
-        <div class="alert alert-danger">
-            {{ session('error') }}
+        @if(session('error'))
+            <div class="alert alert-danger">
+                {{ session('error') }}
+            </div>
+        @endif
+
+        @if(session('success'))
+            <div class="alert alert-success">
+                {{ session('success') }}
+            </div>
+        @endif
+
+        <!-- FILTER -->
+        <div class="card shadow-sm border-0 mb-4">
+
+            <div class="card-body">
+
+                <div class="row g-3">
+
+                    <div class="col-lg-4">
+                        <input
+                            type="text"
+                            id="searchVisitor"
+                            class="form-control"
+                            placeholder="Cari nama visitor...">
+                    </div>
+
+                    <div class="col-lg-3">
+                        <input
+                            type="date"
+                            id="filterDate"
+                            class="form-control">
+                    </div>
+
+                    <div class="col-lg-3">
+                        <select id="filterStatus" class="form-select">
+
+                            <option value="">
+                                Semua Status
+                            </option>
+
+                            <option>
+                                Check In
+                            </option>
+
+                            <option>
+                                Sudah Check Out
+                            </option>
+
+                            <option>
+                                Blacklist
+                            </option>
+
+                        </select>
+                    </div>
+
+                    <div class="col-lg-2">
+                        <button
+                            class="btn btn-primary w-100"
+                            id="searchButton">
+
+                            <i class="bi bi-search"></i>
+                            Cari
+
+                        </button>
+                    </div>
+
+                </div>
+
+            </div>
         </div>
-    @endif
 
-    @if(session('success'))
-        <div class="alert alert-success">
-            {{ session('success') }}
+        <!-- TABLE -->
+        <div class="card shadow-sm border-0">
+
+            <div class="card-header bg-white d-flex justify-content-between align-items-center">
+
+                <h5 class="mb-0">
+                    Daftar Visitor
+                </h5>
+
+                <a
+                    href="{{ route('admin.laporan.export') }}"
+                    class="btn btn-success btn-sm"
+                    id="exportButton">
+
+                    <i class="bi bi-file-earmark-excel"></i>
+                    Export
+
+                </a>
+
+            </div>
+
+            <div class="table-responsive">
+
+                <table class="table table-hover align-middle mb-0">
+
+                    <thead class="table-light">
+
+                        <tr>
+                            <th>No</th>
+                            <th>Nama</th>
+                            <th>ID Kartu Visitor</th>
+                            <th>Email</th>
+                            <th>No. HP</th>
+                            <th>Perusahaan</th>
+                            <th>Tujuan</th>
+                            <th>Lantai</th>
+                            <th>Nomor Rak</th>
+                            <th>Check In</th>
+                            <th>Status</th>
+                            <th class="text-center">Aksi</th>
+                        </tr>
+
+                    </thead>
+
+                    <tbody
+                        id="visitorTable"
+                        data-poll-url="{{ route('admin.visitor.data') }}">
+
+                        @foreach($visitors as $visitor)
+
+                            <tr>
+
+                                <td>
+                                    {{ $loop->iteration }}
+                                </td>
+
+                                <td>
+                                    {{ $visitor->nama }}
+                                </td>
+
+                                <!-- ID KARTU VISITOR -->
+                                <td>
+                                    <span
+                                        class="fw-semibold"
+                                        style="font-family:ui-monospace,Menlo,Consolas,monospace;letter-spacing:.08em;">
+
+                                        {{ $visitor->id_kartu ?? '-' }}
+
+                                    </span>
+                                </td>
+
+                                <td>
+                                    {{ $visitor->email }}
+                                </td>
+
+                                <td>
+                                    {{ $visitor->no_hp }}
+                                </td>
+
+                                <td>
+                                    {{ $visitor->perusahaan }}
+                                </td>
+
+                                <td>
+                                    {{ $visitor->tujuan }}
+                                </td>
+
+                                <td>
+                                    {{ $visitor->lantai ? 'Lantai ' . $visitor->lantai : '-' }}
+                                </td>
+
+                                <td>
+                                    {{ $visitor->nomor_rak ?: '-' }}
+                                </td>
+
+                                <td>
+                                    {{ $visitor->created_at->format('d M Y H:i') }}
+                                </td>
+
+                                <td>
+
+                                    @if($visitor->status == 'Masuk')
+
+                                        <span class="badge bg-success">
+                                            Check In
+                                        </span>
+
+                                    @else
+
+                                        <span class="badge bg-secondary">
+                                            Sudah Check Out
+                                        </span>
+
+                                    @endif
+
+                                    @if(in_array($visitor->no_hp, $blacklistedNoHp))
+
+                                        <span class="badge bg-danger">
+                                            Blacklist
+                                        </span>
+
+                                    @endif
+
+                                </td>
+
+                                <td>
+
+                                    <div class="d-flex justify-content-center align-items-center flex-nowrap gap-2">
+
+                                        <a
+                                            href="{{ route('admin.visitor.detail', $visitor->id) }}"
+                                            class="btn btn-primary btn-sm">
+
+                                            <i class="bi bi-eye-fill"></i>
+
+                                        </a>
+
+                                        @if(!in_array($visitor->no_hp, $blacklistedNoHp))
+
+                                            <button
+                                                type="button"
+                                                class="btn btn-outline-danger btn-sm"
+                                                data-bs-toggle="modal"
+                                                data-bs-target="#blacklistModal"
+                                                data-visitor-id="{{ $visitor->id }}"
+                                                data-visitor-nama="{{ $visitor->nama }}">
+
+                                                <i class="bi bi-slash-circle"></i>
+
+                                            </button>
+
+                                        @else
+
+                                            <button
+                                                type="button"
+                                                class="btn btn-outline-success btn-sm"
+                                                data-bs-toggle="modal"
+                                                data-bs-target="#unblacklistModal"
+                                                data-visitor-id="{{ $visitor->id }}"
+                                                data-visitor-nama="{{ $visitor->nama }}"
+                                                title="Hapus dari blacklist">
+
+                                                <i class="bi bi-unlock-fill"></i>
+
+                                            </button>
+
+                                        @endif
+
+                                    </div>
+
+                                </td>
+
+                            </tr>
+
+                        @endforeach
+
+                    </tbody>
+
+                </table>
+
+            </div>
         </div>
-    @endif
 
-    <!-- ===================== FILTER ===================== -->
+        <!-- PAGINATION -->
+        <div class="d-flex justify-content-between align-items-center mt-4">
 
-    <div class="card shadow-sm border-0 mb-4">
+            <small class="text-muted" id="visitorCountText">
 
-        <div class="card-body">
+                Menampilkan 1 - {{ $visitors->count() }} dari {{ $visitors->count() }} data visitor
 
-            <div class="row g-3">
+            </small>
 
-                <div class="col-lg-4">
+            <nav>
 
-                    <input
-                        type="text"
-                        id="searchVisitor"
-                        class="form-control"
-                        placeholder="Cari nama visitor...">
+                <ul class="pagination mb-0">
 
-                </div>
+                    <li class="page-item disabled">
+                        <a class="page-link" href="#">
+                            Previous
+                        </a>
+                    </li>
 
-                <div class="col-lg-3">
+                    <li class="page-item active">
+                        <a class="page-link" href="#">
+                            1
+                        </a>
+                    </li>
 
-                    <input
-                        type="date"
-                        id="filterDate"
-                        class="form-control">
+                    <li class="page-item disabled">
+                        <a class="page-link" href="#">
+                            Next
+                        </a>
+                    </li>
 
-                </div>
+                </ul>
 
-                <div class="col-lg-3">
+            </nav>
 
-                    <select
-                        id="filterStatus"
-                        class="form-select">
+        </div>
 
-                        <option value="">
+    </main>
 
-                            Semua Status
+</div>
 
-                        </option>
+<!-- MODAL BLACKLIST -->
+<div class="modal fade" id="blacklistModal" tabindex="-1">
 
-                        <option>
+    <div class="modal-dialog">
 
-                            Check In
+        <form method="POST" id="blacklistForm">
 
-                        </option>
+            @csrf
 
-                        <option>
+            <div class="modal-content">
 
-                            Sudah Check Out
+                <div class="modal-header">
 
-                        </option>
-
-                        <option>
-
-                            Blacklist
-
-                        </option>
-
-                    </select>
-
-                </div>
-
-                <div class="col-lg-2">
+                    <h5 class="modal-title">
+                        Tambahkan ke blacklist
+                    </h5>
 
                     <button
-                        class="btn btn-primary w-100"
-                        id="searchButton">
+                        type="button"
+                        class="btn-close"
+                        data-bs-dismiss="modal">
+                    </button>
 
-                        <i class="bi bi-search"></i>
+                </div>
 
-                        Cari
+                <div class="modal-body">
+
+                    <p>
+                        Anda akan memblokir
+                        <strong id="blacklistNama"></strong>
+                        agar tidak bisa check-in lagi.
+                    </p>
+
+                    <div class="mb-3">
+
+                        <label class="form-label">
+                            Alasan
+                        </label>
+
+                        <textarea
+                            name="alasan"
+                            class="form-control"
+                            rows="3"
+                            required></textarea>
+
+                    </div>
+
+                </div>
+
+                <div class="modal-footer">
+
+                    <button
+                        type="button"
+                        class="btn btn-secondary"
+                        data-bs-dismiss="modal">
+
+                        Batal
+
+                    </button>
+
+                    <button
+                        type="submit"
+                        class="btn btn-danger">
+
+                        Blacklist
 
                     </button>
 
@@ -274,454 +491,116 @@
 
             </div>
 
-        </div>
+        </form>
 
     </div>
-    <!-- ===================== TABLE ===================== -->
 
-    <div class="card shadow-sm border-0">
+</div>
 
-        <div class="card-header bg-white d-flex justify-content-between align-items-center">
+<!-- MODAL UNBLACKLIST -->
+<div class="modal fade" id="unblacklistModal" tabindex="-1">
 
-            <h5 class="mb-0">
+    <div class="modal-dialog">
 
-                Daftar Visitor
+        <form method="POST" id="unblacklistForm">
 
-            </h5>
+            @csrf
 
-            <a
-                href="{{ route('admin.laporan.export') }}"
-                class="btn btn-success btn-sm"
-                id="exportButton">
+            <div class="modal-content">
 
-                <i class="bi bi-file-earmark-excel"></i>
+                <div class="modal-header">
 
-                Export
+                    <h5 class="modal-title">
+                        Hapus dari blacklist
+                    </h5>
 
-            </a>
-
-        </div>
-
-        <div class="table-responsive">
-
-            <table class="table table-hover align-middle mb-0">
-
-                <thead class="table-light">
-
-                    <tr>
-
-                        <th>No</th>
-
-                        <th>Nama</th>
-
-                        <th>ID Visitor</th>
-
-                        <th>Email</th>
-
-                        <th>No. HP</th>
-
-                        <th>Perusahaan</th>
-
-                        <th>Tujuan</th>
-
-                        <th>Lantai</th>
-
-                        <th>Nomor Rak</th>
-
-                        <th>Check In</th>
-
-                        <th>Status</th>
-
-                        <th class="text-center">Aksi</th>
-
-                    </tr>
-
-                </thead>
-
-                <tbody id="visitorTable" data-poll-url="{{ route('admin.visitor.data') }}">
-
-            @foreach($visitors as $visitor)
-
-            <tr>
-
-                <td>
-                    {{ $loop->iteration }}
-                </td>
-
-                <td>
-                    {{ $visitor->nama }}
-                </td>
-
-                <td>
-                    <span class="fw-semibold" style="font-family:ui-monospace,Menlo,Consolas,monospace;letter-spacing:.08em;">{{ $visitor->visitor_id ?: '-' }}</span>
-                </td>
-
-                <td>
-                    {{ $visitor->email }}
-                </td>
-
-                <td>
-                    {{ $visitor->no_hp }}
-                </td>
-
-                <td>
-                    {{ $visitor->perusahaan }}
-                </td>
-
-                <td>
-                    {{ $visitor->tujuan }}
-                </td>
-
-                <td>
-                    {{ $visitor->lantai ? 'Lantai ' . $visitor->lantai : '-' }}
-                </td>
-
-                <td>
-                    {{ $visitor->nomor_rak ?: '-' }}
-                </td>
-
-                <td>
-                    {{ $visitor->created_at->format('d M Y H:i') }}
-                </td>
-
-                <td>
-
-                    @if($visitor->status == 'Masuk')
-
-                        <span class="badge bg-success">
-
-                            Check In
-
-                        </span>
-
-                    @else
-
-                        <span class="badge bg-secondary">
-
-                            Sudah Check Out
-
-                        </span>
-
-                    @endif
-
-                    @if(in_array($visitor->no_hp, $blacklistedNoHp))
-
-                        <span class="badge bg-danger">
-
-                            Blacklist
-
-                        </span>
-
-                    @endif
-
-                </td>
-
-                <td>
-
-                    <div class="d-flex justify-content-center align-items-center flex-nowrap gap-2">
-
-                    <a
-                        href="{{ route('admin.visitor.detail', $visitor->id) }}"
-                        class="btn btn-primary btn-sm">
-
-                        <i class="bi bi-eye-fill"></i>
-
-                    </a>
-
-                    @if(!in_array($visitor->no_hp, $blacklistedNoHp))
-
-                        <button
-                            type="button"
-                            class="btn btn-outline-danger btn-sm"
-                            data-bs-toggle="modal"
-                            data-bs-target="#blacklistModal"
-                            data-visitor-id="{{ $visitor->id }}"
-                            data-visitor-nama="{{ $visitor->nama }}">
-
-                            <i class="bi bi-slash-circle"></i>
-
-                        </button>
-
-                    @else
-
-                        <button
-                            type="button"
-                            class="btn btn-outline-success btn-sm"
-                            data-bs-toggle="modal"
-                            data-bs-target="#unblacklistModal"
-                            data-visitor-id="{{ $visitor->id }}"
-                            data-visitor-nama="{{ $visitor->nama }}"
-                            title="Hapus dari blacklist">
-
-                            <i class="bi bi-unlock-fill"></i>
-
-                        </button>
-
-                    @endif
-
-                    </div>
-
-                </td>
-
-            </tr>
-
-        @endforeach
-
-    </tbody>
-
-            </table>
-
-        </div>
-
-    </div>
-    <!-- ===================== PAGINATION ===================== -->
-
-    <div class="d-flex justify-content-between align-items-center mt-4">
-
-        <small class="text-muted" id="visitorCountText">
-
-            Menampilkan 1 - {{ $visitors->count() }} dari {{ $visitors->count() }} data visitor
-
-        </small>
-
-        <nav>
-
-            <ul class="pagination mb-0">
-
-                <li class="page-item disabled">
-
-                    <a class="page-link" href="#">
-
-                        Previous
-
-                    </a>
-
-                </li>
-
-                <li class="page-item active">
-
-                    <a class="page-link" href="#">
-
-                        1
-
-                    </a>
-
-                </li>
-
-                <li class="page-item disabled">
-
-                    <a class="page-link" href="#">
-
-                        Next
-
-                    </a>
-
-                </li>
-
-            </ul>
-
-        </nav>
-
-    </div>
-
-        </main>
-
-    </div>
-
-    <!-- ===================== MODAL BLACKLIST ===================== -->
-
-    <div class="modal fade" id="blacklistModal" tabindex="-1">
-
-        <div class="modal-dialog">
-
-            <form method="POST" id="blacklistForm">
-
-                @csrf
-
-                <div class="modal-content">
-
-                    <div class="modal-header">
-
-                        <h5 class="modal-title">
-
-                            Tambahkan ke blacklist
-
-                        </h5>
-
-                        <button
-                            type="button"
-                            class="btn-close"
-                            data-bs-dismiss="modal">
-                        </button>
-
-                    </div>
-
-                    <div class="modal-body">
-
-                        <p>
-
-                            Anda akan memblokir
-                            <strong id="blacklistNama"></strong>
-                            agar tidak bisa check-in lagi.
-
-                        </p>
-
-                        <div class="mb-3">
-
-                            <label class="form-label">
-
-                                Alasan
-
-                            </label>
-
-                            <textarea
-                                name="alasan"
-                                class="form-control"
-                                rows="3"
-                                required></textarea>
-
-                        </div>
-
-                    </div>
-
-                    <div class="modal-footer">
-
-                        <button
-                            type="button"
-                            class="btn btn-secondary"
-                            data-bs-dismiss="modal">
-
-                            Batal
-
-                        </button>
-
-                        <button
-                            type="submit"
-                            class="btn btn-danger">
-
-                            Blacklist
-
-                        </button>
-
-                    </div>
+                    <button
+                        type="button"
+                        class="btn-close"
+                        data-bs-dismiss="modal">
+                    </button>
 
                 </div>
 
-            </form>
+                <div class="modal-body">
 
-        </div>
-
-    </div>
-    <!-- ===================== MODAL UNBLACKLIST ===================== -->
-
-    <div class="modal fade" id="unblacklistModal" tabindex="-1">
-
-        <div class="modal-dialog">
-
-            <form method="POST" id="unblacklistForm">
-
-                @csrf
-
-                <div class="modal-content">
-
-                    <div class="modal-header">
-
-                        <h5 class="modal-title">
-
-                            Hapus dari blacklist
-
-                        </h5>
-
-                        <button
-                            type="button"
-                            class="btn-close"
-                            data-bs-dismiss="modal">
-                        </button>
-
-                    </div>
-
-                    <div class="modal-body">
-
-                        <p>
-
-                            Anda akan menghapus
-                            <strong id="unblacklistNama"></strong>
-                            dari daftar blacklist, sehingga visitor ini
-                            bisa check-in lagi.
-
-                        </p>
-
-                    </div>
-
-                    <div class="modal-footer">
-
-                        <button
-                            type="button"
-                            class="btn btn-secondary"
-                            data-bs-dismiss="modal">
-
-                            Batal
-
-                        </button>
-
-                        <button
-                            type="submit"
-                            class="btn btn-success">
-
-                            Hapus dari Blacklist
-
-                        </button>
-
-                    </div>
+                    <p>
+                        Anda akan menghapus
+                        <strong id="unblacklistNama"></strong>
+                        dari daftar blacklist, sehingga visitor ini
+                        bisa check-in lagi.
+                    </p>
 
                 </div>
 
-            </form>
+                <div class="modal-footer">
 
-        </div>
+                    <button
+                        type="button"
+                        class="btn btn-secondary"
+                        data-bs-dismiss="modal">
+
+                        Batal
+
+                    </button>
+
+                    <button
+                        type="submit"
+                        class="btn btn-success">
+
+                        Hapus dari Blacklist
+
+                    </button>
+
+                </div>
+
+            </div>
+
+        </form>
 
     </div>
 
-    <!-- Dark Mode JS -->
+</div>
 
-    <script src="{{ asset('assets/js/darkmode.js') }}"></script>
+<!-- Dark Mode JS -->
+<script src="{{ asset('assets/js/darkmode.js') }}"></script>
 
-    <!-- Bootstrap JS -->
+<!-- Bootstrap JS -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/js/bootstrap.bundle.min.js"></script>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/js/bootstrap.bundle.min.js"></script>
+<!-- Visitor JS -->
+<script src="{{ asset('assets/js/visitor.js') }}"></script>
 
-    <!-- Visitor JS -->
+<!-- Blacklist Modal JS -->
+<script>
 
-    <script src="{{ asset('assets/js/visitor.js') }}"></script>
+    document.getElementById('blacklistModal').addEventListener('show.bs.modal', function (event) {
 
-    <!-- Blacklist Modal JS -->
+        const button = event.relatedTarget;
+        const visitorId = button.getAttribute('data-visitor-id');
+        const visitorNama = button.getAttribute('data-visitor-nama');
 
-    <script>
+        document.getElementById('blacklistForm').action =
+            "/admin/visitor/" + visitorId + "/blacklist";
 
-        document.getElementById('blacklistModal').addEventListener('show.bs.modal', function (event) {
+        document.getElementById('blacklistNama').textContent = visitorNama;
 
-            const button = event.relatedTarget;
-            const visitorId = button.getAttribute('data-visitor-id');
-            const visitorNama = button.getAttribute('data-visitor-nama');
+    });
 
-            document.getElementById('blacklistForm').action = "/admin/visitor/" + visitorId + "/blacklist";
-            document.getElementById('blacklistNama').textContent = visitorNama;
+    document.getElementById('unblacklistModal').addEventListener('show.bs.modal', function (event) {
 
-        });
+        const button = event.relatedTarget;
+        const visitorId = button.getAttribute('data-visitor-id');
+        const visitorNama = button.getAttribute('data-visitor-nama');
 
-        document.getElementById('unblacklistModal').addEventListener('show.bs.modal', function (event) {
+        document.getElementById('unblacklistForm').action =
+            "/admin/visitor/" + visitorId + "/unblacklist";
 
-            const button = event.relatedTarget;
-            const visitorId = button.getAttribute('data-visitor-id');
-            const visitorNama = button.getAttribute('data-visitor-nama');
+        document.getElementById('unblacklistNama').textContent = visitorNama;
 
-            document.getElementById('unblacklistForm').action = "/admin/visitor/" + visitorId + "/unblacklist";
-            document.getElementById('unblacklistNama').textContent = visitorNama;
+    });
 
-        });
+</script>
 
-    </script>
-
-    </body>
-
-    </html>
+</body>
+</html>

@@ -95,35 +95,42 @@ class AdminController extends Controller
         );
     }
 
-    public function visitorData()
-    {
-        $visitors = Visitor::latest()->get();
+    
+public function visitorData()
+{
+    $visitors = Visitor::latest()->get();
 
-        $blacklistedNoHp = Blacklist::pluck('no_hp')->toArray();
+    $blacklistedNoHp = Blacklist::pluck('no_hp')->toArray();
 
-        $data = $visitors->map(function ($visitor) use ($blacklistedNoHp) {
-            return [
-                'id'           => $visitor->id,
-                'nama'         => $visitor->nama,
-                'visitor_id'   => $visitor->visitor_id,
-                'email'        => $visitor->email,
-                'no_hp'        => $visitor->no_hp,
-                'perusahaan'   => $visitor->perusahaan,
-                'tujuan'       => $visitor->tujuan,
-                'lantai'       => $visitor->lantai ? 'Lantai ' . $visitor->lantai : '-',
-                'nomor_rak'    => $visitor->nomor_rak ?: '-',
-                'check_in'     => $visitor->created_at->format('d M Y H:i'),
-                'tanggal'      => $visitor->created_at->format('Y-m-d'),
-                'status'       => $visitor->status,
-                'blacklisted'  => in_array($visitor->no_hp, $blacklistedNoHp),
-                'detail_url'   => route('admin.visitor.detail', $visitor->id),
-            ];
-        });
+    $data = $visitors->map(function ($visitor) use ($blacklistedNoHp) {
+        return [
+            'id'           => $visitor->id,
+            'nama'         => $visitor->nama,
+            'visitor_id'   => $visitor->visitor_id,
+            'id_kartu'     => $visitor->id_kartu,
+            'email'        => $visitor->email,
+            'no_hp'        => $visitor->no_hp,
+            'perusahaan'   => $visitor->perusahaan,
+            'tujuan'       => $visitor->tujuan,
+            'lantai'       => $visitor->lantai ? 'Lantai ' . $visitor->lantai : '-',
+            'nomor_rak'    => $visitor->nomor_rak ?: '-',
+            'check_in'     => $visitor->created_at
+                ? $visitor->created_at->format('d M Y H:i')
+                : '-',
+            'tanggal'      => $visitor->created_at
+                ? $visitor->created_at->format('Y-m-d')
+                : '-',
+            'status'       => $visitor->status,
+            'blacklisted'  => in_array($visitor->no_hp, $blacklistedNoHp),
+            'detail_url'   => route('admin.visitor.detail', $visitor->id),
+        ];
+    });
 
-        return response()->json([
-            'visitors' => $data,
-        ]);
-    }
+    return response()->json([
+        'visitors' => $data,
+    ]);
+}
+
 
     public function visitorDetail(Visitor $visitor)
     {
@@ -340,51 +347,64 @@ class AdminController extends Controller
         ));
     }
 
-    public function laporanExport(Request $request)
-    {
-        $visitors = $this->filteredLaporanQuery($request)
-            ->latest('waktu_masuk')
-            ->get();
+    
+public function laporanExport(Request $request)
+{
+    $visitors = $this->filteredLaporanQuery($request)
+        ->latest('waktu_masuk')
+        ->get();
 
-        $filename = 'laporan-visitor-' . now()->format('Ymd-His') . '.csv';
+    $filename = 'laporan-visitor-' . now()->format('Ymd-His') . '.csv';
 
-        $headers = [
-            'Content-Type'        => 'text/csv',
-            'Content-Disposition' => "attachment; filename=\"$filename\"",
-        ];
+    $headers = [
+        'Content-Type'        => 'text/csv; charset=UTF-8',
+        'Content-Disposition' => "attachment; filename=\"$filename\"",
+    ];
 
-        $callback = function () use ($visitors) {
+    $callback = function () use ($visitors) {
 
-            $file = fopen('php://output', 'w');
+        $file = fopen('php://output', 'w');
+
+        // BOM agar karakter CSV terbaca dengan baik di Excel
+        fprintf($file, chr(0xEF) . chr(0xBB) . chr(0xBF));
+
+        fputcsv($file, [
+            'No',
+            'Nama',
+            'ID Kartu Visitor',
+            'Perusahaan',
+            'No HP',
+            'Email',
+            'Tujuan',
+            'Check In',
+            'Check Out',
+            'Status',
+        ]);
+
+        foreach ($visitors as $index => $visitor) {
 
             fputcsv($file, [
-                'No', 'Nama', 'ID Visitor', 'Perusahaan', 'No HP', 'Email',
-                'Tujuan', 'Check In', 'Check Out', 'Status',
+                $index + 1,
+                $visitor->nama,
+                $visitor->id_kartu ?: '-',
+                $visitor->perusahaan,
+                $visitor->no_hp,
+                $visitor->email,
+                $visitor->tujuan,
+                optional($visitor->waktu_masuk)->format('d M Y H:i'),
+                $visitor->waktu_keluar
+                    ? $visitor->waktu_keluar->format('d M Y H:i')
+                    : '-',
+                $visitor->status === 'Masuk' ? 'Aktif' : 'Selesai',
             ]);
+        }
 
-            foreach ($visitors as $index => $visitor) {
+        fclose($file);
+    };
 
-                fputcsv($file, [
-                    $index + 1,
-                    $visitor->nama,
-                    $visitor->visitor_id ?: '-',
-                    $visitor->perusahaan,
-                    $visitor->no_hp,
-                    $visitor->email,
-                    $visitor->tujuan,
-                    optional($visitor->waktu_masuk)->format('d M Y H:i'),
-                    $visitor->waktu_keluar
-                        ? $visitor->waktu_keluar->format('d M Y H:i')
-                        : '-',
-                    $visitor->status === 'Masuk' ? 'Aktif' : 'Selesai',
-                ]);
-            }
+    return response()->stream($callback, 200, $headers);
+}
 
-            fclose($file);
-        };
-
-        return response()->stream($callback, 200, $headers);
-    }
 
     private function filteredLaporanQuery(Request $request)
     {

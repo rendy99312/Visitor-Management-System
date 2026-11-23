@@ -12,27 +12,31 @@ Route::middleware('maintenance')->group(function () {
 
     Route::view('/', 'index')->name('home');
 
-    // Halaman pilihan: Register atau Login
+    // Halaman pilihan Register atau Login
     Route::get('/checkin', [VisitorController::class, 'checkin'])
         ->name('checkin');
 
-    // REGISTER (form lengkap, untuk visitor baru)
+    // REGISTER
     Route::get('/checkin/register', [VisitorController::class, 'checkinRegister'])
         ->name('checkin.register');
 
     Route::post('/checkin/register', [VisitorController::class, 'store'])
         ->name('visitor.store');
 
-    // LOGIN (form singkat, untuk visitor yang sudah pernah check-in)
+    // LOGIN
     Route::get('/checkin/login', [VisitorController::class, 'checkinLogin'])
         ->name('checkin.login');
 
     Route::post('/checkin/login', [VisitorController::class, 'loginStore'])
+        ->middleware('throttle:15,1')
         ->name('visitor.login.store');
 
+    // LOOKUP NOMOR HP DAN ID KARTU
     Route::get('/checkin/lookup', [VisitorController::class, 'lookup'])
+        ->middleware('throttle:15,1')
         ->name('checkin.lookup');
 
+    // CHECKOUT
     Route::get('/checkout', [VisitorController::class, 'checkout'])
         ->name('checkout');
 
@@ -44,16 +48,7 @@ Route::middleware('maintenance')->group(function () {
 
     Route::view('/success', 'success')->name('success');
 
-    Route::get('/checkin/lookup', [VisitorController::class, 'lookup'])
-    ->middleware('throttle:15,1')
-    ->name('checkin.lookup');
-
-    Route::post('/checkin/login', [VisitorController::class, 'loginStore'])
-    ->middleware('throttle:15,1')
-    ->name('visitor.login.store');
-
 });
-
 
 
 // ===================== ADMIN =====================

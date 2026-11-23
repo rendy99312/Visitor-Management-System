@@ -1,3 +1,4 @@
+
 /*
 ==========================================
 DC Visitor
@@ -6,37 +7,28 @@ Checkout Javascript
 */
 
 const searchForm = document.getElementById("searchForm");
-
 const searchPhone = document.getElementById("searchPhone");
-
 const searchButton = document.getElementById("searchButton");
 
 const visitorCard = document.getElementById("visitorCard");
-
 const notFoundAlert = document.getElementById("notFoundAlert");
 
 const visitorId = document.getElementById("visitorId");
-
 const visitorPhoto = document.getElementById("visitorPhoto");
 
 const visitorName = document.getElementById("visitorName");
-
 const visitorPhone = document.getElementById("visitorPhone");
+const visitorCardId = document.getElementById("visitorCardId");
 
 const visitorEmail = document.getElementById("visitorEmail");
-
 const visitorCompany = document.getElementById("visitorCompany");
-
 const visitorPurpose = document.getElementById("visitorPurpose");
 
 const visitorLantai = document.getElementById("visitorLantai");
-
 const visitorRak = document.getElementById("visitorRak");
-
 const visitorCheckIn = document.getElementById("visitorCheckIn");
 
 const confirmCheckoutButton = document.getElementById("confirmCheckoutButton");
-
 const backHomeButton = document.getElementById("backHomeButton");
 
 /*
@@ -50,9 +42,7 @@ const csrfToken = document
     .getAttribute("content");
 
 const searchUrl = searchForm.dataset.searchUrl;
-
 const checkoutUrl = visitorCard.dataset.checkoutUrl;
-
 const homeUrl = backHomeButton.dataset.homeUrl;
 
 /*
@@ -66,27 +56,20 @@ searchForm.addEventListener("submit", async function (e) {
     e.preventDefault();
 
     visitorCard.classList.add("d-none");
-
     notFoundAlert.classList.add("d-none");
 
     const phone = searchPhone.value.trim();
 
     if (phone === "") {
-
         alert("Masukkan Nomor HP.");
-
         return;
-
     }
 
     searchButton.disabled = true;
 
     searchButton.innerHTML = `
-
         <span class="spinner-border spinner-border-sm"></span>
-
         Mencari...
-
     `;
 
     try {
@@ -113,25 +96,29 @@ searchForm.addEventListener("submit", async function (e) {
 
             const visitor = result.data;
 
+            // ID database untuk proses checkout
             visitorId.value = visitor.id;
 
-            visitorPhoto.src = visitor.foto;
+            // Foto visitor
+            visitorPhoto.src = visitor.foto || "";
 
-            visitorName.textContent = visitor.nama;
+            // Data visitor
+            visitorName.textContent = visitor.nama || "-";
+            visitorPhone.textContent = visitor.no_hp || "-";
 
-            visitorPhone.textContent = visitor.no_hp;
+            // ID Kartu Visitor
+            if (visitorCardId) {
+                visitorCardId.textContent = visitor.id_kartu || "-";
+            }
 
             visitorEmail.textContent = visitor.email || "-";
-
-            visitorCompany.textContent = visitor.perusahaan;
-
-            visitorPurpose.textContent = visitor.tujuan;
+            visitorCompany.textContent = visitor.perusahaan || "-";
+            visitorPurpose.textContent = visitor.tujuan || "-";
 
             visitorLantai.textContent = visitor.lantai || "-";
-
             visitorRak.textContent = visitor.nomor_rak || "-";
 
-            visitorCheckIn.textContent = visitor.waktu_masuk;
+            visitorCheckIn.textContent = visitor.waktu_masuk || "-";
 
             visitorCard.classList.remove("d-none");
 
@@ -147,23 +134,19 @@ searchForm.addEventListener("submit", async function (e) {
 
         notFoundAlert.classList.remove("d-none");
 
+    } finally {
+
+        searchButton.disabled = false;
+
+        searchButton.innerHTML = `
+            <i class="bi bi-search"></i>
+            <span>Cari Visitor</span>
+        `;
+
     }
 
-    searchButton.disabled = false;
-
-    searchButton.innerHTML = `
-
-        <i class="bi bi-search"></i>
-
-        <span>
-
-            Cari Visitor
-
-        </span>
-
-    `;
-
 });
+
 /*
 ==========================================
 Confirm Checkout
@@ -173,19 +156,14 @@ Confirm Checkout
 confirmCheckoutButton.addEventListener("click", async function () {
 
     if (!visitorId.value) {
-
         return;
-
     }
 
     confirmCheckoutButton.disabled = true;
 
     confirmCheckoutButton.innerHTML = `
-
         <span class="spinner-border spinner-border-sm"></span>
-
         Memproses...
-
     `;
 
     try {
@@ -209,19 +187,17 @@ confirmCheckoutButton.addEventListener("click", async function () {
         const result = await response.json();
 
         const confirmModal = bootstrap.Modal.getInstance(
-
             document.getElementById("confirmCheckoutModal")
-
         );
 
-        confirmModal.hide();
+        if (confirmModal) {
+            confirmModal.hide();
+        }
 
         if (response.ok && result.success) {
 
             const successModal = new bootstrap.Modal(
-
                 document.getElementById("successModal")
-
             );
 
             successModal.show();
@@ -238,15 +214,12 @@ confirmCheckoutButton.addEventListener("click", async function () {
 
         alert("Terjadi kesalahan, silakan coba lagi.");
 
+    } finally {
+
+        confirmCheckoutButton.disabled = false;
+        confirmCheckoutButton.innerHTML = "Ya, Check Out";
+
     }
-
-    confirmCheckoutButton.disabled = false;
-
-    confirmCheckoutButton.innerHTML = `
-
-        Ya, Check Out
-
-    `;
 
 });
 
@@ -283,9 +256,7 @@ Enter Key Support
 searchPhone.addEventListener("keypress", function (e) {
 
     if (e.key === "Enter") {
-
         searchForm.requestSubmit();
-
     }
 
 });
