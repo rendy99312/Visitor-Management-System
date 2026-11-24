@@ -306,8 +306,7 @@
                             required>
 
                         <small class="text-muted mt-1 d-block">
-                            Masukkan nomor ID Kartu Visitor berupa angka positif.
-                            Gunakan ID Kartu yang sama saat login pada kunjungan berikutnya.
+                            Masukkan ID Kartu Visitor yang digunakan
                         </small>
 
                         <div class="invalid-feedback">

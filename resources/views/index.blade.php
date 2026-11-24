@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="id">
 
@@ -24,7 +25,7 @@
     <!-- Global CSS -->
     <link rel="stylesheet" href="/assets/css/global.css">
 
-    <!-- Device Preview Frame (shared) -->
+    <!-- Device Preview Frame -->
     <link rel="stylesheet" href="/assets/css/user/device-frame.css">
 
     <!-- User CSS -->
@@ -37,9 +38,6 @@
 <body>
 
     <!-- ===================== DEVICE PREVIEW FRAME ===================== -->
-    <!-- Semua isi web (navbar + hero) dibungkus di sini supaya bisa
-         "dipaksa" tampil selebar HP / Tablet / Desktop lewat tombol
-         switcher, terlepas dari device asli yang dipakai user. -->
 
     <div id="deviceFrame">
 
@@ -49,18 +47,35 @@
 
             <div class="container">
 
+                <!-- Logo -->
                 <a class="navbar-brand fw-bold" href="{{ route('home') }}">
                     @include('partials.brand-logo')
                 </a>
 
+                <!-- NAVBAR TOOLS -->
                 <div class="navbar-tools">
 
-                <!-- Tombol Dark / Light Mode -->
-                <button class="theme-toggle-user" type="button" title="Ganti tema">
-                    <i class="theme-toggle-icon bi bi-moon-stars-fill"></i>
-                </button>
+                    <!-- Tombol Dark / Light Mode -->
+                    <button
+                        class="theme-toggle-user"
+                        type="button"
+                        title="Ganti tema"
+                        aria-label="Ganti tema"
+                    >
+                        <i class="theme-toggle-icon bi bi-moon-stars-fill"></i>
+                    </button>
 
-            </div>
+                    <!-- Tombol Admin -->
+                    <a
+                        href="{{ auth()->check() ? route('admin.dashboard') : route('login') }}"
+                        class="admin-access-user"
+                        title="Halaman Admin"
+                        aria-label="Halaman Admin"
+                    >
+                        <i class="bi bi-person-gear"></i>
+                    </a>
+
+                </div>
 
             </div>
 
@@ -78,26 +93,25 @@
 
                     <div class="col-lg-7">
 
-             
-
-                    
                         <h1 class="hero-title">
-                        Sengked Management System
+                            Sengked Management System
                         </h1>
 
                         <p class="hero-description">
-                            <strong>Sengked Management System</strong> Silakan lakukan
+                            Silakan lakukan
                             <strong>Check In</strong> sebelum memasuki area Data Center dan
                             <strong>Check Out</strong> setelah seluruh kegiatan telah selesai.
                         </p>
 
                         <div class="hero-buttons">
 
+                            <!-- Check In -->
                             <a href="{{ route('checkin') }}" class="btn btn-primary btn-lg">
                                 <i class="bi bi-box-arrow-in-right"></i>
                                 Check In
                             </a>
 
+                            <!-- Check Out -->
                             <a href="{{ route('checkout') }}" class="btn btn-outline-primary btn-lg">
                                 <i class="bi bi-box-arrow-left"></i>
                                 Check Out
@@ -113,10 +127,13 @@
 
         </section>
 
-@include('partials.footer')
+        <!-- ===================== FOOTER ===================== -->
 
+        @include('partials.footer')
 
     </div>
+
+    <!-- ===================== JAVASCRIPT ===================== -->
 
     <!-- Dark Mode JS -->
     <script src="{{ asset('assets/js/darkmode.js') }}"></script>
@@ -124,7 +141,7 @@
     <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/js/bootstrap.bundle.min.js"></script>
 
-    <!-- Device Preview Frame (shared) -->
+    <!-- Device Preview Frame -->
     <script src="{{ asset('assets/js/device-frame.js') }}"></script>
 
     <!-- Main JS -->

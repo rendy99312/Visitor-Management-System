@@ -464,3 +464,124 @@ body.device-mobile #deviceFrame .hero,
 body.device-tablet #deviceFrame .hero {
     padding-top: 80px;
 }
+
+/* ==========================================
+   ADMIN ACCESS BUTTON
+   Sengked Management System
+========================================== */
+
+.navbar-tools {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 12px;
+    margin-left: auto;
+    flex-shrink: 0;
+}
+
+/* Admin Button */
+.admin-access-user {
+    width: 42px;
+    height: 42px;
+
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+
+    background: var(--bg-surface-2, #f3f4f6);
+    color: var(--text-main, #1f2937);
+
+    border: 1px solid var(--border-color, #e5e7eb);
+    border-radius: 50%;
+
+    font-size: 20px;
+    text-decoration: none;
+
+    flex-shrink: 0;
+    transition: all .25s ease;
+}
+
+/* Hover Effect */
+.admin-access-user:hover {
+    background: #F97316;
+    border-color: #F97316;
+    color: #ffffff;
+
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(249, 115, 22, .25);
+}
+
+/* Focus Accessibility */
+.admin-access-user:focus-visible {
+    outline: 3px solid rgba(249, 115, 22, .35);
+    outline-offset: 3px;
+}
+
+/* Dark Mode */
+body.dark-mode .admin-access-user {
+    background: var(--bg-surface-2, #252b38);
+    color: #ffffff;
+    border-color: var(--border-color, #374151);
+}
+
+body.dark-mode .admin-access-user:hover {
+    background: #F97316;
+    border-color: #F97316;
+    color: #ffffff;
+}
+
+/* Tablet */
+@media (max-width: 768px) {
+    .navbar-tools {
+        gap: 9px;
+    }
+
+    .admin-access-user {
+        width: 40px;
+        height: 40px;
+        font-size: 19px;
+    }
+}
+
+/* Smartphone */
+@media (max-width: 480px) {
+    .navbar-tools {
+        gap: 7px;
+    }
+
+    .admin-access-user {
+        width: 36px;
+        height: 36px;
+        font-size: 17px;
+    }
+
+    .navbar-brand {
+        min-width: 0;
+    }
+
+    .navbar-brand .brand-logo-img {
+        max-width: 36px;
+        max-height: 36px;
+    }
+}
+
+/* Device Preview Mobile */
+body.device-mobile .navbar-tools {
+    gap: 7px;
+}
+
+body.device-mobile .admin-access-user {
+    width: 36px;
+    height: 36px;
+    font-size: 17px;
+}
+
+/* Device Preview Tablet */
+body.device-tablet .navbar-tools {
+    gap: 9px;
+}
+
+body.device-tablet .admin-access-user {
+    width: 40px;
+    height: 40px;
+}
